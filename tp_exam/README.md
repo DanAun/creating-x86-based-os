@@ -99,24 +99,34 @@ pouvez m'envoyer par mail.
 
 ## Commit workflow from a fork 
 
-# For each new feature/task
+### When working on changes:
+
+# First sync your fork with the original repo
 ```bash
-git checkout -b feature/your-feature-name
+git checkout main
+git fetch upstream
+git merge upstream/main
+git push origin main
 ```
-# Work on your changes...
+
+# Create your feature branch
+```bash
+git checkout -b feature/your-feature
+```
+# Make your changes...
 ```bash
 git add .
 git commit -m "descriptive message"
-git push origin feature/your-feature-name
+git push origin feature/your-feature
 ```
 
-Then create a Pull Request (PR) on GitHub:
+### Create Pull Request:
 
-- Go to the repository on GitHub
+- Go to the original repository on GitHub
 - Click "New Pull Request"
-- Select main as the base and your feature branch as compare
-- Add description and request review
-
-
+- Click "compare across forks"
+- Select the original repo's main as the base
+- Select your fork and feature branch as the compare
+- Submit the PR
 
 
