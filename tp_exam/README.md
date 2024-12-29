@@ -97,4 +97,26 @@ $ tar czf nom.prenom.tar.gz *.patch
 Ceci vous génère une archive compressée contenant vos modifications, que vous
 pouvez m'envoyer par mail.
 
+## Commit workflow from a fork 
+
+# For each new feature/task
+```bash
+git checkout -b feature/your-feature-name
+```
+# Work on your changes...
+```bash
+git add .
+git commit -m "descriptive message"
+git push origin feature/your-feature-name
+```
+
+Then create a Pull Request (PR) on GitHub:
+
+- Go to the repository on GitHub
+- Click "New Pull Request"
+- Select main as the base and your feature branch as compare
+- Add description and request review
+
+
+
 
