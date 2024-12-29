@@ -44,10 +44,13 @@
 #define c3_dsc(_d) gdt_flat_dsc(_d,3,SEG_DESC_CODE_XR)
 #define d3_dsc(_d) gdt_flat_dsc(_d,3,SEG_DESC_DATA_RW)
 
-#define PDT_ADDR 0x600000
-#define PTB_ADDR 0x601000
-#define PT1_ADDR PTB_ADDR + 0x1000 * 1
-#define PT2_ADDR PTB_ADDR + 0x1000 * 2
+#define PDT_ADDR_KERNEL 0x100000
+#define PDT_ADDR_PROCESS1 0x101000
+#define PDT_ADDR_PROCESS2 0x102000
+
+#define PT_ADDR_KERNEL 0x103000
+#define PT_ADDR_PROCESS1 0x104000
+#define PT_ADDR_PROCESS2 0x105000
 
 seg_desc_t GDT[6];
 tss_t      TSS;
@@ -84,25 +87,45 @@ void process2(){
 }
 
 void tp() {
-	init_gdt();
+	//init_gdt();
 
 	//Set up TSS
 
 	//Set up IDT
 
 	//Set up paging
-	pde32_t *pdt = (pde32_t*) PDT_ADDR;
-	pte32_t *pt1 = (pte32_t*) PT1_ADDR;
-	set_cr3((uint32_t)pdt);
 
-	for (int i = 0; i < 1024; i++) {
-		pg_set_entry(&pt1[i], PG_KRN | PG_RW, i);
+	// Page Directory Tables (PDTs) for each process
+	pde32_t *pdt_kernel = (pde32_t*) PDT_ADDR_KERNEL;
+	set_cr3((uint32_t)pdt_kernel);
+	pde32_t *pdt_process1 = (pde32_t*) PDT_ADDR_PROCESS1;
+	pde32_t *pdt_process2 = (pde32_t*) PDT_ADDR_PROCESS2;
+	
+	// Page Tables (PTs) for each process
+	pte32_t *pt_kernel = (pte32_t*) PT_ADDR_KERNEL;
+	pte32_t *pt_process1 = (pte32_t*) PT_ADDR_PROCESS1;
+	pte32_t *pt_process2 = (pte32_t*) PT_ADDR_PROCESS2;
+
+	// Set up page tables
+	for (uint32_t i = 0; i < PTE32_PER_PT; i++) {
+		pg_set_entry(&pt_kernel[i], PG_KRN | PG_RW, i);
+		pg_set_entry(&pt_process1[i], PG_USR | PG_RW, i);
+		pg_set_entry(&pt_process2[i], PG_USR | PG_RW, i);
 	}
 
-	memset((void*)pdt, 0, PAGE_SIZE);
-	pg_set_entry(&pdt[0], PG_KRN|PG_RW, page_get_nr(pt1));
+	// Set up page directory tables
+	memset((void*)pdt_kernel, 0, PAGE_SIZE);
+	memset((void*)pdt_process1, 0, PAGE_SIZE);
+	memset((void*)pdt_process2, 0, PAGE_SIZE);
+	pg_set_entry(&pdt_kernel[0], PG_KRN|PG_RW, page_get_nr(pt_kernel));
+	pg_set_entry(&pdt_process1[0], PG_USR|PG_RW, page_get_nr(pt_process1));
+	pg_set_entry(&pdt_process2[0], PG_USR|PG_RW, page_get_nr(pt_process2));
 
 	//Enable paging
 	uint32_t cr0 = get_cr0();
 	set_cr0(cr0|CR0_PG);
+
+	debug("pt_kernel[1] = %x\n", pt_kernel[1].raw);
+	debug("pt_process1[1] = %x\n", pt_process1[1].raw);
+	debug("pt_process2[1] = %x\n", pt_process2[1].raw);
 }
