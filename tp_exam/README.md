@@ -97,4 +97,61 @@ $ tar czf nom.prenom.tar.gz *.patch
 Ceci vous génère une archive compressée contenant vos modifications, que vous
 pouvez m'envoyer par mail.
 
+## Adding files to project
+
+```
+tp_folder/
+├── Makefile          
+├── tp.c              # Main entry point (stays in root)
+├── src/              # Additional modules directory
+│   ├── module1.c     # Example module
+│   ├── module2.c     # Example module
+│   └── module3.s     # Assembly if needed
+├── include/          # Header files directory
+│   ├── module1.h
+│   └── module2.h
+└── README.md
+
+```
+
+You can add new modules by:
+
+Creating a new source file in `src/`
+Adding its header in `include/`
+Including and using it in `tp.c`
+
+The build system will automatically pick up any new files you add to src/ without requiring Makefile modifications.
+
+## Commit workflow from a fork 
+
+### When working on changes:
+
+# First sync your fork with the original repo
+```bash
+git checkout main
+git fetch upstream
+git merge upstream/main
+git push origin main
+```
+
+# Create your feature branch
+```bash
+git checkout -b feature/your-feature
+```
+# Make your changes...
+```bash
+git add .
+git commit -m "descriptive message"
+git push origin feature/your-feature
+```
+
+### Create Pull Request:
+
+- Go to the original repository on GitHub
+- Click "New Pull Request"
+- Click "compare across forks"
+- Select the original repo's main as the base
+- Select your fork and feature branch as the compare
+- Submit the PR
+
 
