@@ -78,23 +78,7 @@ void init_gdt() {
    set_gs(d0_sel);
 }
 
-void process1(){
-	while(1){};
-}
-
-void process2(){
-	while(1){};
-}
-
-void tp() {
-	//init_gdt();
-
-	//Set up TSS
-
-	//Set up IDT
-
-	//Set up paging
-
+void init_paging(){
 	// Page Directory Tables (PDTs) for each process
 	pde32_t *pdt_kernel = (pde32_t*) PDT_ADDR_KERNEL;
 	set_cr3((uint32_t)pdt_kernel);
@@ -128,4 +112,22 @@ void tp() {
 	debug("pt_kernel[1] = %x\n", pt_kernel[1].raw);
 	debug("pt_process1[1] = %x\n", pt_process1[1].raw);
 	debug("pt_process2[1] = %x\n", pt_process2[1].raw);
+}
+void process1(){
+	while(1){};
+}
+
+void process2(){
+	while(1){};
+}
+
+void tp() {
+	init_gdt();
+
+	//Set up TSS
+
+	//Set up IDT
+
+	init_paging();
+
 }
