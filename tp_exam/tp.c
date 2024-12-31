@@ -73,34 +73,37 @@ void init_tss() {
   display_tss(&TSS);
 }
 void init_gdt() {
-   gdt_reg_t gdtr;
+  gdt_reg_t gdtr;
 
-   GDT[0].raw = 0ULL;
+  GDT[0].raw = 0ULL;
 
-   c0_dsc( &GDT[c0_idx] );
-   d0_dsc( &GDT[d0_idx] );
-   c3_dsc( &GDT[c3_idx] );
-   d3_dsc( &GDT[d3_idx] );
+  c0_dsc(&GDT[c0_idx]);
+  d0_dsc(&GDT[d0_idx]);
+  c3_dsc(&GDT[c3_idx]);
+  d3_dsc(&GDT[d3_idx]);
 
-   gdtr.desc  = GDT;
-   gdtr.limit = sizeof(GDT) - 1;
-   set_gdtr(gdtr);
+  gdtr.desc = GDT;
+  gdtr.limit = sizeof(GDT) - 1;
+  set_gdtr(gdtr);
 
-   set_cs(c0_sel);
+  set_cs(c0_sel);
 
-   debug("cs\n");
-   print_selector_content(c0_sel);
+  debug("cs\n");
+  print_selector_content(c0_sel);
 
-   set_ss(d0_sel);
-   set_ds(d0_sel);
-   set_es(d0_sel);
-   set_fs(d0_sel);
-   set_gs(d0_sel);
+  set_ss(d0_sel);
+  set_ds(d0_sel);
+  set_es(d0_sel);
+  set_fs(d0_sel);
+  set_gs(d0_sel);
 
-   debug("ss, ds, es, fs, gs\n");
-   print_selector_content(d0_sel);
-   print_gdt_content(gdtr);
-   debug("======Finished Setting up GDT ======\n");
+  debug("ss, ds, es, fs, gs\n");
+  print_selector_content(d0_sel);
+
+  init_tss();
+  print_gdt_content(gdtr);
+
+  debug("======Finished Setting up GDT ======\n");
 }
 
 void init_paging(){
