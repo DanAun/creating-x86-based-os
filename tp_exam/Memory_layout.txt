@@ -1,0 +1,31 @@
+Kernel Space:
+
+Identity mapped from 0x00000000 to 0x00400000 (4MB)
+This covers all the sections shown in your Section Headers
+All tasks see this same mapping in their address space
+
+
+Shared Memory:
+
+Physical: 0x00400000 - 0x00401000 (4KB)
+Task 1 Virtual: 0x40000000 - 0x40001000
+Task 2 Virtual: 0x50000000 - 0x50001000
+Different virtual addresses prevent mistakes in pointer handling
+
+
+Task Stacks:
+
+Each task has two 4KB stacks (user and kernel)
+User stacks at virtual 0x7FFFF000 (standard userland stack location)
+Kernel stacks at virtual 0x80000000 (start of kernel space)
+Physical locations are consecutive but separated to avoid overlap
+0x402000 - 0x404000
+0x403000 - 0x405000
+
+
+Task Code:
+
+Virtual: 0x08048000 (standard ELF loading address)
+Physical: Separate 4KB pages for each task
+This allows for different code in each task while using the same virtual address
+
