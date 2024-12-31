@@ -4,7 +4,7 @@
 | **Range**                | **Description**                |
 |--------------------------|---------------------------------|
 | `0x1000000 - 0x1ffffff`  | PGD and PTB memory range       |
-| `0x200000 - 0x3fffff`    | Kernel memory range            |
+| `0x000000 - 0x3fffff`    | Kernel memory range            |
 | `0x200000 - 0x200fff`    | Process 1 kernel stack         |
 | `0x201000 - 0x201fff`    | Process 2 kernel stack         |
 | `0x400000 - 0x4fffff`    | Process 1 memory range         |
