@@ -3,20 +3,19 @@
 ## **Physical Memory Layout**
 | **Range**                | **Description**                |
 |--------------------------|---------------------------------|
-| `0x100000 - 0x1fffff`    | PGD and PTB memory range       |
-| `0x200000 - 0x2fffff`    | Kernel memory range            |
+| `0x1000000 - 0x1ffffff`  | PGD and PTB memory range       |
+| `0x200000 - 0x3fffff`    | Kernel memory range            |
 | `0x200000 - 0x200fff`    | Process 1 kernel stack         |
 | `0x201000 - 0x201fff`    | Process 2 kernel stack         |
-| `0x300000 - 0x3fffff`    | Process 1 memory range         |
-| `0x400000 - 0x4fffff`    | Process 2 memory range         |
-| `0x500000 - 0x500fff`    | Shared memory range            |
+| `0x400000 - 0x4fffff`    | Process 1 memory range         |
+| `0x500000 - 0x5fffff`    | Process 2 memory range         |
+| `0x600000 - 0x600fff`    | Shared memory range            |
 
 
 ## **Shared Memory**
-- **Physical Address**: `0x00500000 - 0x00500fff` (4KB).
-- **Task 1 Virtual Address**: `0x500000 - 0x500fff`.
-- **Task 2 Virtual Address**: `0x600000 - 0x600fff`.
-  - Different virtual addresses prevent mistakes in pointer handling.
+- **Physical Address**: `0x00600000 - 0x00600fff` (4KB).
+- **Task 1 Virtual Address**: `0x600000 - 0x600fff`.
+- **Task 2 Virtual Address**: `0x700000 - 0x700fff`.
 
 ---
 
