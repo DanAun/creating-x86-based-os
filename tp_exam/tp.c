@@ -54,8 +54,25 @@ tss_t      TSS;
 #define PGD_ADDR_KERNEL 0x100000
 #define PGD_ADDR_PROCESS1 0x101000
 #define PGD_ADDR_PROCESS2 0x102000
+tss_t TSS;
 #define VIRTUAL_KERNEL_STACK 0xC0000000
+#define PHY_KERNEL_STACK 0x201000
 
+void init_tss() {
+
+  debug("=======Setting up TSS=======\n");
+  // Task State Segment descriptor
+  initialize_segment_descriptor(&GDT[ts_idx], (offset_t)&TSS, sizeof(tss_t),
+                                SEG_DESC_SYS_TSS_AVL_32, 0b00, 0, 0, 0, 0, 1);
+  memset(&TSS, 0, sizeof(tss_t));
+  TSS.s0.ss = make_seg_sel(2, 0, 0);
+  TSS.s0.esp = (uint32_t)(PHY_KERNEL_STACK);
+  short tr = make_seg_sel(5, 0, 0);
+  set_tr(tr);
+  // TSS.ss = make_seg_sel(5, 0, 3); // Ring 3 stack segment
+  debug("=======Setting up TSS=======\n");
+  display_tss(&TSS);
+}
 void init_gdt() {
    gdt_reg_t gdtr;
 
