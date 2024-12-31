@@ -152,12 +152,17 @@ void init_paging() {
   set_cr0(cr0 | CR0_PG);
   analyze_page_mapping(pgd_process2);
 }
-__attribute__((section(".process1"))) void process1(){
-	while(1){};
+
+__attribute__((section(".process1"))) void process1() {
+  while (1) {
+  };
 }
 
-__attribute__((section(".process2"))) void process2(){
-	while(1){};
+__attribute__((section(".process2"))) void process2() {
+  while (1) {
+  };
+}
+
 #define PROCESS1_STACK_ADDR 0x4fffff
 #define PROCESS2_STACK_ADDR 0x5fffff
 
