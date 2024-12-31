@@ -106,35 +106,56 @@ void init_gdt() {
   debug("======Finished Setting up GDT ======\n");
 }
 
-void init_paging(){
-   pde32_t *pgd_kernel = (pde32_t*) PGD_ADDR_KERNEL;
-   pde32_t *pgd_process1 = (pde32_t*) PGD_ADDR_PROCESS1;
-   pde32_t *pgd_process2 = (pde32_t*) PGD_ADDR_PROCESS2;
+#define PGD_ADDR_KERNEL 0x1000000
+#define PT_BASE_KERNEL 0x1001000
 
-   memset((void*)pgd_kernel, 0, PAGE_SIZE);
-   memset((void*)pgd_process1, 0, PAGE_SIZE);
-   memset((void*)pgd_process2, 0, PAGE_SIZE);
+#define PGD_ADDR_PROCESS1 0x1500000
+#define PT_BASE_PROCESS1 0x1501000
 
-   // Map Kernel space 0x0-0x2fffff
-   map_addresses(pgd_kernel, 0x0, 0x0, 0x300000, PG_KRN | PG_RW);
+#define PGD_ADDR_PROCESS2 0x1a00000
+#define PT_BASE_PROCESS2 0x1a01000
 
-   // Map Process 1 space 0x300000-0x3fffff
-   map_addresses(pgd_process1, 0x300000, 0x300000, 0x100000, PG_USR | PG_RW);
+void init_paging() {
+  pde32_t *pgd_kernel = (pde32_t *)PGD_ADDR_KERNEL;
+  pde32_t *pgd_process1 = (pde32_t *)PGD_ADDR_PROCESS1;
+  pde32_t *pgd_process2 = (pde32_t *)PGD_ADDR_PROCESS2;
 
-   // Map Process 2 space 0x400000-0x4fffff
-   map_addresses(pgd_process2, 0x400000, 0x400000, 0x100000, PG_USR | PG_RW);
+  memset((void *)pgd_kernel, 0, PAGE_SIZE);
+  memset((void *)pgd_process1, 0, PAGE_SIZE);
+  memset((void *)pgd_process2, 0, PAGE_SIZE);
 
-   // Map shared memory 0x500000 - 0x501000
-   map_addresses(pgd_process1, 0x500000, 0x500000, 0x1000, PG_USR | PG_RW);
-   map_addresses(pgd_process2, 0x600000, 0x500000, 0x1000, PG_USR);
+  // Map Kernel space 0x0-0x2fffff
+  map_addresses(pgd_kernel, (uint32_t)PT_BASE_KERNEL, 0x0, 0x0, 0x400000,
+                PG_KRN | PG_RW);
 
-   // Map Process kernel stacks
-   map_addresses(pgd_process1, VIRTUAL_KERNEL_STACK, 0x200000, 0x1000, PG_KRN | PG_RW);
-   map_addresses(pgd_process2, VIRTUAL_KERNEL_STACK, 0x201000, 0x1000, PG_KRN | PG_RW);
+  // Map Kernel space of page tables 0x1000000-0x2000000
+  map_addresses(pgd_kernel, (uint32_t)PT_BASE_KERNEL, 0x1000000, 0x1000000,
+                0x1000000, PG_KRN | PG_RW);
 
-   set_cr3((uint32_t)pgd_kernel);
-   uint32_t cr0 = get_cr0();
-   set_cr0(cr0|CR0_PG);
+  // Map Process 1 space 0x300000-0x3fffff
+  map_addresses(pgd_process1, (uint32_t)PT_BASE_PROCESS1, 0x400000, 0x400000,
+                0x100000, PG_USR | PG_RW);
+
+  // Map Process 2 space 0x400000-0x4fffff
+  map_addresses(pgd_process2, (uint32_t)PT_BASE_PROCESS2, 0x500000, 0x500000,
+                0x100000, PG_USR | PG_RW);
+
+  // Map shared memory 0x500000 - 0x501000
+  map_addresses(pgd_process1, (uint32_t)PT_BASE_PROCESS1, 0x600000, 0x600000,
+                0x1000, PG_USR | PG_RW);
+  map_addresses(pgd_process2, (uint32_t)PT_BASE_PROCESS2, 0x700000, 0x600000,
+                0x1000, PG_USR);
+
+  // Map Process kernel stacks
+  map_addresses(pgd_process1, (uint32_t)PT_BASE_PROCESS1, VIRTUAL_KERNEL_STACK,
+                0x200000, 0x1000, PG_KRN | PG_RW);
+  map_addresses(pgd_process2, (uint32_t)PT_BASE_PROCESS2, VIRTUAL_KERNEL_STACK,
+                0x201000, 0x1000, PG_KRN | PG_RW);
+
+  set_cr3((uint32_t)pgd_kernel);
+  uint32_t cr0 = get_cr0();
+  set_cr0(cr0 | CR0_PG);
+  analyze_page_mapping(pgd_process2);
 }
 __attribute__((section(".process1"))) void process1(){
 	while(1){};
