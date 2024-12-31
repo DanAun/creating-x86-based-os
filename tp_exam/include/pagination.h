@@ -14,6 +14,6 @@
 #define ENTRIES_PER_PTE 0x400
 #define PG_SIZE 0x1000
 
-void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t size, uint32_t flags) ;
+void map_addresses(pde32_t *pgd , uint32_t ptb_addr_base,uint32_t v_start, uint32_t p_start, uint32_t size, uint32_t flags) ;
 
 #endif // DEBUG
