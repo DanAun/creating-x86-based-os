@@ -199,3 +199,191 @@ void display_usefull_info() {
   // gdt_reg_t new_gdtr = {new_gdt_ptr, {0x11}};
   // print_gdt_content(new_gdtr);
 }
+
+
+void print_block_info(uint32_t start_vaddr, uint32_t end_vaddr, uint32_t phys_start, 
+                     int is_large_page, uint32_t flags, int start_pde, int start_pte, int end_pte) {
+    debug("Memory Block:\n");
+    debug("  Virtual Range: 0x%08x - 0x%08x (Size: %dKB)\n", 
+           start_vaddr, end_vaddr, (end_vaddr - start_vaddr + 1) / 1024);
+    debug("  Physical Range: 0x%08x - 0x%08x\n",
+           phys_start, phys_start + (end_vaddr - start_vaddr));
+    debug("  Type: %s\n", is_large_page ? "4MB Page" : "4KB Pages");
+    if (!is_large_page) {
+        debug("  PDE: %d, PTE Range: %d-%d\n", start_pde, start_pte, end_pte);
+    } else {
+        debug("  PDE: %d\n", start_pde);
+    }
+    debug("  Flags: %s%s%s%s%s%s%s\n",
+           (flags & 2) ? "RW " : "RO ",
+           (flags & 4) ? "USER " : "SUPERVISOR ",
+           (flags & 8) ? "PWT " : "",
+           (flags & 16) ? "PCD " : "",
+           (flags & 32) ? "ACC " : "",
+           (flags & 64) ? "DIRTY " : "",
+           (flags & 256) ? "GLOBAL " : "");
+}
+
+void analyze_page_mapping(pde32_t *ptb) {
+    if (!ptb) {
+        debug("Invalid page table pointer\n");
+        return;
+    }
+
+    for (int pde_idx = 0; pde_idx < 1024; pde_idx++) {
+        pde32_t *pde = &((pde32_t*)ptb)[pde_idx];
+        
+        if (!pde->p) continue;
+
+        if (pde->page.ps) {
+            print_block_info(
+                pde_idx << 22,
+                (pde_idx << 22) + 0x3FFFFF,
+                pde->page.addr << 22,
+                1,
+                *(uint32_t*)pde & 0x3FF,
+                pde_idx,
+                0,
+                0
+            );
+            continue;
+        }
+
+        pte32_t *pt = (pte32_t*)(pde->addr << 12);
+        int block_start_pte = -1;
+        uint32_t last_phys_addr = 0;
+        uint32_t last_flags = 0;
+        
+        for (int pte_idx = 0; pte_idx < 1024; pte_idx++) {
+            pte32_t *pte = &pt[pte_idx];
+            uint32_t curr_flags = *(uint32_t*)pte & 0x3FF;
+            uint32_t curr_phys = pte->addr << 12;
+            
+            if (!pte->p) {
+                if (block_start_pte != -1) {
+                    print_block_info(
+                        (pde_idx << 22) | (block_start_pte << 12),
+                        (pde_idx << 22) | ((pte_idx - 1) << 12) | 0xFFF,
+                        last_phys_addr - ((pte_idx - 1 - block_start_pte) << 12),
+                        0,
+                        last_flags,
+                        pde_idx,
+                        block_start_pte,
+                        pte_idx - 1
+                    );
+                    block_start_pte = -1;
+                }
+                continue;
+            }
+
+            if (block_start_pte == -1 || 
+                curr_flags != last_flags || 
+                curr_phys != last_phys_addr + 0x1000) {
+                if (block_start_pte != -1) {
+                    print_block_info(
+                        (pde_idx << 22) | (block_start_pte << 12),
+                        (pde_idx << 22) | ((pte_idx - 1) << 12) | 0xFFF,
+                        last_phys_addr - ((pte_idx - 1 - block_start_pte) << 12),
+                        0,
+                        last_flags,
+                        pde_idx,
+                        block_start_pte,
+                        pte_idx - 1
+                    );
+                }
+                block_start_pte = pte_idx;
+            }
+            
+            last_phys_addr = curr_phys;
+            last_flags = curr_flags;
+        }
+
+        if (block_start_pte != -1) {
+            print_block_info(
+                (pde_idx << 22) | (block_start_pte << 12),
+                (pde_idx << 22) | (1023 << 12) | 0xFFF,
+                last_phys_addr - ((1023 - block_start_pte) << 12),
+                0,
+                last_flags,
+                pde_idx,
+                block_start_pte,
+                1023
+            );
+        }
+    }
+}
+
+void display_cr3(const cr3_reg_t *cr3) {
+  printf("=== Control Register 3 (CR3) ===\n");
+  printf("Reserved (r1): 0x%08x\n", cr3->r1);
+  printf("Page Write Through (PWT): %u\n", cr3->pwt);
+  printf("Page Cache Disable (PCD): %u\n", cr3->pcd);
+  printf("Reserved (r2): 0x%08x\n", cr3->r2);
+  printf("Physical Address (ADDR): 0x%86x\n", cr3->addr);
+  printf("================================\n");
+}
+
+void display_cr0(const cr0_reg_t * cr0) {
+  printf("Control Register 0 (CR0):\n");
+  printf("  Protected Mode (PE): %u\n", cr0->pe);
+  printf("  Monitor Coprocessor (MP): %u\n", cr0->mp);
+  printf("  Emulation (EM): %u\n", cr0->em);
+  printf("  Task Switch (TS): %u\n", cr0->ts);
+  printf("  Extension Type (ET): %u\n", cr0->et);
+  printf("  Numeric Error (NE): %u\n", cr0->ne);
+  printf("  Reserved (R1): %u\n",
+         cr0->r1); // Reserved fields can be shown as 0 or omitted
+  printf("  Write Protect (WP): %u\n", cr0->wp);
+  printf("  Reserved (R2): %u\n", cr0->r2);
+  printf("  Align Mask (AM): %u\n", cr0->am);
+  printf("  Reserved (R3): %u\n", cr0->r3);
+  printf("  Not Write Through (NW): %u\n", cr0->nw);
+  printf("  Cache Disable (CD): %u\n", cr0->cd);
+  printf("  Paging (PG): %u\n", cr0->pg);
+}
+void display_pde(pde32_t* pde_ptr) {
+    debug("Page Directory Entry:\n");
+    debug("  Present (P): %u\n", pde_ptr->p);
+    debug("  Read/Write (RW): %u\n", pde_ptr->rw);
+    debug("  User/Supervisor (LVL): %u\n", pde_ptr->lvl);
+    debug("  Page Write Through (PWT): %u\n", pde_ptr->pwt);
+    debug("  Page Cache Disable (PCD): %u\n", pde_ptr->pcd);
+    debug("  Accessed (ACC): %u\n", pde_ptr->acc);
+    debug("  Must Be Zero (MBZ): %u\n", pde_ptr->mbz);
+    debug("  Available (AVL): %u\n", pde_ptr->avl);
+    debug("  Address: 0x%08x\n", pde_ptr->addr << 12);
+}
+
+void display_pde_page(pde32_t* pde_ptr) {
+    debug("Page Directory Entry (Page):\n");
+    debug("  Present (P): %u\n", pde_ptr->page.p);
+    debug("  Read/Write (RW): %u\n", pde_ptr->page.rw);
+    debug("  User/Supervisor (LVL): %u\n", pde_ptr->page.lvl);
+    debug("  Page Write Through (PWT): %u\n", pde_ptr->page.pwt);
+    debug("  Page Cache Disable (PCD): %u\n", pde_ptr->page.pcd);
+    debug("  Accessed (ACC): %u\n", pde_ptr->page.acc);
+    debug("  Dirty (D): %u\n", pde_ptr->page.d);
+    debug("  Page Size (PS): %u\n", pde_ptr->page.ps);
+    debug("  Global (G): %u\n", pde_ptr->page.g);
+    debug("  Available (AVL): %u\n", pde_ptr->page.avl);
+    debug("  Page Attribute Table (PAT): %u\n", pde_ptr->page.pat);
+    debug("  Reserved (RSV): %u\n", pde_ptr->page.rsv);
+    debug("  Address: 0x%03X\n", pde_ptr->page.addr);
+}
+
+void display_pte(pte32_t* pte_ptr) {
+    debug("Page Table Entry:\n");
+    debug("  Present (P): %u\n", pte_ptr->p);
+    debug("  Read/Write (RW): %u\n", pte_ptr->rw);
+    debug("  User/Supervisor (LVL): %u\n", pte_ptr->lvl);
+    debug("  Page Write Through (PWT): %u\n", pte_ptr->pwt);
+    debug("  Page Cache Disable (PCD): %u\n", pte_ptr->pcd);
+    debug("  Accessed (ACC): %u\n", pte_ptr->acc);
+    debug("  Dirty (D): %u\n", pte_ptr->d);
+    debug("  Page Attribute Table (PAT): %u\n", pte_ptr->pat);
+    debug("  Global (G): %u\n", pte_ptr->g);
+    debug("  Available (AVL): %u\n", pte_ptr->avl);
+    debug("  Address: 0x%08x\n", pte_ptr->addr<< 12);
+}
+
+

@@ -2,8 +2,9 @@
 #ifndef UTILS
 #define UTILS
 
-#include "gpr.h"
-#include "types.h"
+#include "cr.h"
+#include "pagemem.h"
+#include <debug.h>
 #include <debug.h>
 #include <segmem.h>
 #include <intr.h>
@@ -21,6 +22,21 @@ void initialize_segment_descriptor(seg_desc_t *desc, uint32_t base,
 void display_type(uint64_t system_field, uint64_t type_field) ;
 
 void print_gdt_content(gdt_reg_t gdtr_ptr) ;
+
+
+void print_block_info(uint32_t start_vaddr, uint32_t end_vaddr, uint32_t phys_start, 
+                     int is_large_page, uint32_t flags, int start_pde, int start_pte, int end_pte) ;
+
+void analyze_page_mapping(pde32_t *ptb) ;
+
+void display_cr3(const cr3_reg_t *cr3) ;
+
+void display_cr0(const cr0_reg_t * cr0) ;
+void display_pde(pde32_t* pde_ptr) ;
+
+void display_pde_page(pde32_t* pde_ptr) ;
+
+void display_pte(pte32_t* pte_ptr) ;
 
 
 void display_usefull_info() ;
