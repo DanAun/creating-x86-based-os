@@ -1,0 +1,83 @@
+Kernel Space:
+
+Identity mapped from 0x00000000 to 0x00400000 (4MB)
+This covers all the sections shown in your Section Headers
+All tasks see this same mapping in their address space
+
+
+Shared Memory:
+
+Physical: 0x00500000 - 0x00500fff (4KB)
+Task 1 Virtual: 0x500000 - 0x500fff
+Task 2 Virtual: 0x600000 - 0x600fff
+Different virtual addresses prevent mistakes in pointer handling
+
+
+Task Stacks:
+
+Each task has two 4KB stacks (user and kernel)
+User stacks identity mapped:
+    Process1: 0x3fffff (grows down)
+    Process2: 0x4fffff (grows down)
+Kernel stacks at virtual 0xC0000000
+Physical locations are consecutive but separated to avoid overlap
+0x200000 - 0x200fff
+0x201000 - 0x201fff
+
+
+Task Code:
+
+Virtual: 0x08048000 (standard ELF loading address)
+Physical: Separate 4KB pages for each task
+This allows for different code in each task while using the same virtual address
+
+Physical Memory layout summary:
+
+
+PGD and PTB memory ranges :
+    Kernel [0x1000000 - 0x1400fff]
+        PGD : 0x1000000 - 0x1000fff 
+        PT_BASE : 0x1001000 
+
+    Process 1 [0x1500000 - 0x1900fff]
+        PGD : 0x1500000 - 0x1500fff 
+        PT_BASE : 0x1501000 
+
+    Process 2 [0x1a00000 - 0x1e00fff]
+        PGD : 0x1a00000 - 0x1a00fff 
+        PT_BASE : 0x1a01000 
+
+Kernel memory range :       [0x200000 - 0x2fffff]
+    Process1 kernel stack : [0x200000 - 0x200fff]
+    Process2 kernel stack : [0x201000 - 0x201fff]
+Process1 memory range :     [0x300000 - 0x3fffff]
+Process2 memory range :     [0x400000 - 0x4fffff]
+Shared memory range:        [0x500000 - 0x500fff]
+
+
+
+#define PGD_ADDR_KERNEL 0x100000
+#define PGD_ADDR_PROCESS1 0x101000
+#define PGD_ADDR_PROCESS2 0x102000
+
+
+* Addr to cover : 
+* 0x00000000 To 0x000032c2
+* 0x00300000 To 0x00305560 + 000c20 = 306180
+* The PGD contains 0x400 entries of 4 bytes = 0x1000 (4096) bytes 
+* The PTB contains 0x400 entries of 4 bytes = 0x1000 (4096) bytes
+* There can be one PGD and up to 0x400 PTBs = 0x400*0x1000 per process i.e 0x401000 bytes !! 
+*
+* Each entry of the PGD covers : 0x100000 (1.048.576) bytes (1 Mo)
+* Each entry of a PTB covers : 0x1000 (4096) bytes
+*
+* The memory we need to cover :
+* Buttom (0x32c2) : We need at least 4 * 0x1000 covered
+* Top : (0x6180) : We need at least 7 * 0x1000 covered
+* For the tables themselves : 
+*		PGD from 0x600000 to (0x600000+0x1000 = 0x600fff) -> 1x 0x1000
+*		First PTB 0x601000 to (0x601fff) -> 1x 0x1000
+*		In total 2 entries for the tables themselves
+*
+* In total we need 2 PGD entries and 2 + 7 + 6 = 13 PTB entries
+*
