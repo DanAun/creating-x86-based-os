@@ -36,6 +36,7 @@ void initialize_segment_descriptor(seg_desc_t *desc, uint32_t base,
                                    uint32_t limit, uint8_t type, uint8_t dpl,
                                    uint8_t g, uint8_t l, uint8_t avl, uint8_t s,
                                    uint8_t p) {
+  debug("Initializing segment descriptor with base: 0x%08x, limit: 0x%08x, type: %d, dpl: %d, g: %d, l: %d, avl: %d, s: %d, p: %d\n", base, limit, type, dpl, g, l, avl, s, p);
   if (!desc)
     return;
 
