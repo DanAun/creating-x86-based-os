@@ -1,5 +1,6 @@
 *.o
 *.elf
 .vscode/
+.cache
 gdbrc
-compile_commands.json
+ompile_commands.json
