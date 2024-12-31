@@ -35,6 +35,36 @@
 
 ---
 
+## Memory Segmentation Overview
+
+### **Global Descriptor Table (GDT)**
+- **Location**: `0x307fc0` (inside the kernel's bss for simplicity)  
+
+#### **Descriptor Table Entries**
+| **Index** | **Range**        | **Type**                              | **Details**                                                                                  |
+|-----------|------------------|---------------------------------------|----------------------------------------------------------------------------------------------|
+| **0**     | `0x0 - 0x0`      | System Segment                       | Reserved or invalid system type.                                                            |
+| **1**     | `0x0 - 0xFFFFFFFF` | Code Segment (Kernel)                | - Conforming: No<br>- Readable: Yes<br>- Accessed: No                                        |
+| **2**     | `0x0 - 0xFFFFFFFF` | Data Segment (Kernel)                | - Expansion Direction: Up<br>- Writable: Yes<br>- Accessed: Yes                              |
+| **3**     | `0x0 - 0xFFFFFFFF` | Code Segment (User)                  | - Conforming: No<br>- Readable: Yes<br>- Accessed: No                                        |
+| **4**     | `0x0 - 0xFFFFFFFF` | Data Segment (User)                  | - Expansion Direction: Up<br>- Writable: Yes<br>- Accessed: No                               |
+| **5**     | `0x308160 - 0x30a1e9`      | System Segment                       | TSS.                                                            |
+
+#### **Key Attributes**
+- **Code Segment**:
+  - Specifies executable memory.
+  - Kernel-level segments (Index 1) are not accessible in user mode.
+  - User-level segments (Index 3) conform to ring-3 privilege.
+- **Data Segment**:
+  - Defines readable/writable regions.
+  - Kernel-level segments (Index 2) are isolated from user space.
+  - User-level segments (Index 4) allow controlled access to user applications.
+- **System Segment**:
+  - Reserved entries (Index 0, 5) for TSS.
+
+
+---
+
 ### Ce que nous avons pu faire :
 - Mise en place de la **segmentation**.  
 - Implémentation de la **pagination**, avec identity mapping du noyau et création d'espaces mémoire pour **process1** et **process2**.  
