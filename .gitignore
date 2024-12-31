@@ -2,4 +2,4 @@
 *.elf
 .vscode/
 gdbrc
-compile_commands.json
+ompile_commands.json
