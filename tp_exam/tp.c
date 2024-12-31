@@ -7,7 +7,6 @@
 #include "utils.h"
 
 seg_desc_t GDT[6];
-tss_t      TSS;
 
 
 #define c0_idx  1
