@@ -75,11 +75,19 @@ void init_gdt() {
 
    set_cs(c0_sel);
 
+   debug("cs\n");
+   print_selector_content(c0_sel);
+
    set_ss(d0_sel);
    set_ds(d0_sel);
    set_es(d0_sel);
    set_fs(d0_sel);
    set_gs(d0_sel);
+
+   debug("ss, ds, es, fs, gs\n");
+   print_selector_content(d0_sel);
+   print_gdt_content(gdtr);
+   debug("======Finished Setting up GDT ======\n");
 }
 
 void process1(){
@@ -91,7 +99,7 @@ void process2(){
 }
 
 void tp() {
-	//init_gdt();
+	init_gdt();
 
 	//Set up TSS
 
