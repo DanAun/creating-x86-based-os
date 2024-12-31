@@ -18,7 +18,6 @@ void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t si
     uint32_t pgd_end_idx = (v_start + size - 1) / (ENTRIES_PER_PTE * PAGE_SIZE);
     debug("PGD range: start_idx=%u, end_idx=%u\n", pgd_start_idx, pgd_end_idx);
 
-
     for (uint32_t pgd_idx = pgd_start_idx; pgd_idx <= pgd_end_idx; pgd_idx++) {
         debug("Processing PGD index: %u\n", pgd_idx);
 
@@ -30,15 +29,6 @@ void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t si
         } else {
             debug("PGD entry already allocated.\n");
         }
-        /*
-            pte32_t *pte00 = (pte32_t *)PTB000_ADDR;
-        pte32_t *pte01 = (pte32_t *)PTB001_ADDR;
-        pte32_t *pte02 = (pte32_t *)PTB002_ADDR;
-	pg_set_entry(&pgd[0], PG_KRN|PG_RW,((uint32_t)pte00 >> 12) );
-	pg_set_entry(&pgd[1], PG_KRN|PG_RW,((uint32_t)pte01 >> 12) );
-	pg_set_entry(&pgd[0X300], PG_KRN|PG_RW,((uint32_t)pte02 >> 12) );
-
-         */
 
         pte32_t *pte = (pte32_t *)(pgd[pgd_idx].addr << 12);
         debug("Using PTE table at address: 0x%p\n", pte);
