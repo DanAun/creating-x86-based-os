@@ -1,7 +1,7 @@
-#include <debug.h>
-#include <segmem.h>
-#include <pagemem.h>
 #include <cr.h>
+#include <debug.h>
+#include <pagemem.h>
+#include <segmem.h>
 
 #include "pagination.h"
 #include "utils.h"
