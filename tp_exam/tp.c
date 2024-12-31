@@ -3,6 +3,12 @@
 #include <pagemem.h>
 #include <cr.h>
 
+#include "utils.h"
+
+seg_desc_t GDT[6];
+tss_t      TSS;
+
+
 #define c0_idx  1
 #define d0_idx  2
 #define c3_idx  3
@@ -52,8 +58,6 @@
 #define PT_ADDR_PROCESS1 0x104000
 #define PT_ADDR_PROCESS2 0x105000
 
-seg_desc_t GDT[6];
-tss_t      TSS;
 
 void init_gdt() {
    gdt_reg_t gdtr;
@@ -91,7 +95,16 @@ void tp() {
 
 	//Set up TSS
 
-	//Set up IDT
+ //  debug("=======Setting up TSS=======\n");
+ //  debug("TSS location : %p\n", &TSS);
+ //  TSS.s0.ss = make_seg_sel(2, 0, 0);
+ //  TSS.s0.esp = get_esp();
+ //  short tr = make_seg_sel(6, 0, 0);
+ //  set_tr(tr);
+ //  TSS.ss = make_seg_sel(5, 0, 3); // Ring 3 stack segment
+ //   //
+	// //Set up IDT
+ //  debug("=======Setting up IDT=======\n");
 
 	//Set up paging
 
@@ -124,6 +137,10 @@ void tp() {
 	//Enable paging
 	uint32_t cr0 = get_cr0();
 	set_cr0(cr0|CR0_PG);
+
+	analyze_page_mapping(&pdt_kernel[0]);
+	analyze_page_mapping(&pdt_process1[0]);
+	analyze_page_mapping(&pdt_process2[0]);
 
 	debug("pt_kernel[1] = %x\n", pt_kernel[1].raw);
 	debug("pt_process1[1] = %x\n", pt_process1[1].raw);
