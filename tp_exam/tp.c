@@ -141,6 +141,27 @@ void tp() {
 	analyze_page_mapping(&pdt_kernel[0]);
 	analyze_page_mapping(&pdt_process1[0]);
 	analyze_page_mapping(&pdt_process2[0]);
+   
+/* I need sleep here a super pagination function with example usages, have fun :
+      *   map_addresses(pgd, 0x0, 0x0,
+                0x1000 *
+                    4); // Map 4 pages starting at virtual 0x0 to physical 0x0
+  map_addresses(pgd,
+      0x300000, 0x300000,
+      0x1000 *
+          7); // Map 7 pages starting at virtual 0x300000 to physical 0x300000
+  map_addresses(pgd,
+      0x600000, 0x600000,
+      0x1000 *
+          4); // Map 4 pages starting at virtual 0x600000 to physical 0x600000
+    //
+  map_addresses(pgd,
+      0xc0000000, 0x600000,
+      0x1000); // Map 4 pages starting at virtual 0x600000 to physical 0x600000
+    //
+*/
+
+
 
 	debug("pt_kernel[1] = %x\n", pt_kernel[1].raw);
 	debug("pt_process1[1] = %x\n", pt_process1[1].raw);
