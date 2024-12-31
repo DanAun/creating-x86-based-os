@@ -142,8 +142,12 @@ void init_paging(){
    uint32_t cr0 = get_cr0();
    set_cr0(cr0|CR0_PG);
 
+
+   debug("======Kernel Memory mapping=======\n");
    analyze_page_mapping(&pgd_kernel[0]);
+   debug("======Process 1 Memory mapping=======\n");
 	analyze_page_mapping(&pgd_process1[0]);
+   debug("======Process 2 Memory mapping=======\n");
 	analyze_page_mapping(&pgd_process2[0]);
 }
 void process1(){
