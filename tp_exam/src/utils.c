@@ -9,25 +9,25 @@ void display_tss(const tss_t *tss) {
   debug("=== Task State Segment (TSS) ===\n");
 
   debug("Back Link: 0x%04X\n", tss->back_link);
-  debug("Stack 0: ESP=0x%08x, SS=0b%b\n", tss->s0.esp, tss->s0.ss);
+  debug("Stack 0: ESP=0x%08x, SS=0x%x\n", tss->s0.esp, tss->s0.ss);
     print_selector_content(tss->s0.ss);
-  debug("Stack 1: ESP=0x%08x, SS=0b%b\n", tss->s1.esp, tss->s1.ss);
+  debug("Stack 1: ESP=0x%08x, SS=0x%x\n", tss->s1.esp, tss->s1.ss);
     print_selector_content(tss->s2.ss);
-  debug("Stack 2: ESP=0x%08x, SS=0b%b\n", tss->s2.esp, tss->s2.ss);
+  debug("Stack 2: ESP=0x%08x, SS=0x%x\n", tss->s2.esp, tss->s2.ss);
     print_selector_content(tss->s2.ss);
 
   debug("CR3: 0x%08x\n", tss->cr3);
   debug("EIP: 0x%08x\n", tss->eip);
 
   debug("Segment Selectors:\n");
-  debug("  ES: 0b%b\n", tss->es);
-  debug("  CS: 0b%b\n", tss->cs);
-  debug("  SS: 0b%b\n", tss->ss);
+  debug("  ES: 0x%x\n", tss->es);
+  debug("  CS: 0x%x\n", tss->cs);
+  debug("  SS: 0x%x\n", tss->ss);
     print_selector_content(tss->ss);
-  debug("  DS: 0b%b\n", tss->ds);
-  debug("  FS: 0b%b\n", tss->fs);
-  debug("  GS: 0b%b\n", tss->gs);
-  debug("  LDT: 0b%b\n", tss->ldt);
+  debug("  DS: 0x%x\n", tss->ds);
+  debug("  FS: 0x%x\n", tss->fs);
+  debug("  GS: 0x%x\n", tss->gs);
+  debug("  LDT: 0x%x\n", tss->ldt);
 
   debug("Trap: %s\n", tss->trap.on ? "Enabled" : "Disabled");
 }
@@ -166,38 +166,32 @@ void display_usefull_info() {
   debug("======= Segment Selectors =======\n");
   short tr;
   get_tr(tr);
-  debug("tr : %b\n", tr);
+  debug("tr : 0x%x\n", tr);
   print_selector_content(tr);
 
   short cs = get_seg_sel(cs);
-  debug("cs : %b\n", cs);
+  debug("cs : 0x%x\n", cs);
   print_selector_content(cs);
 
   short ds = get_seg_sel(ds);
-  debug("ds : %b\n", ds);
+  debug("ds : 0x%x\n", ds);
   print_selector_content(ds);
 
   short ss = get_seg_sel(ss);
-  debug("ss : %b\n", ss);
+  debug("ss : 0x%x\n", ss);
   print_selector_content(ss);
 
   short es = get_seg_sel(es);
-  debug("es : %b\n", es);
+  debug("es : 0x%x\n", es);
   print_selector_content(es);
 
   short fs = get_seg_sel(fs);
-  debug("fs : %b\n", fs);
+  debug("fs : 0x%x\n", fs);
   print_selector_content(fs);
 
   short gs = get_seg_sel(gs);
-  debug("gs : %b\n", gs);
+  debug("gs : 0x%x\n", gs);
   print_selector_content(gs);
-
-
-  // unsigned int new_gdt_ptr = 0xfffeffff;
-  // offset_t new_gdt_ptr = gdtr.addr + gdtr.limit ;
-  // gdt_reg_t new_gdtr = {new_gdt_ptr, {0x11}};
-  // print_gdt_content(new_gdtr);
 }
 
 
