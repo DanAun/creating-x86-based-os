@@ -163,9 +163,20 @@ __attribute__((section(".process1"))) void process1(){
 
 __attribute__((section(".process2"))) void process2(){
 	while(1){};
+#define PROCESS1_STACK_ADDR 0x4fffff
+#define PROCESS2_STACK_ADDR 0x5fffff
+
+void ring3_transition() {
+  asm volatile("push %0 \n" // ss
+               "push %1 \n" // esp pour du ring 3 !
+               "pushf   \n" // eflags
+               "push %2 \n" // cs
+               "push %3 \n" // eip
+               "iret" ::"i"(d3_sel),
+               "i"(PROCESS1_STACK_ADDR), "i"(c3_sel), "r"(&process1));
 }
 
 void tp() {
-	init_gdt();
    init_paging();
+   // ring3_transition();
 }
