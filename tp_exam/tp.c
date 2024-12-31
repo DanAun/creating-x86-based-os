@@ -177,6 +177,7 @@ void ring3_transition() {
 }
 
 void tp() {
-   init_paging();
+  init_gdt();
+  init_paging();
    // ring3_transition();
 }
