@@ -40,4 +40,8 @@ void display_pte(pte32_t* pte_ptr) ;
 
 
 void display_usefull_info() ;
+
+#define make_seg_sel(idx, ti, rpl) \
+   (((idx) << 3) | ((ti) << 2) | (rpl))
+
 #endif // !DEBUG
