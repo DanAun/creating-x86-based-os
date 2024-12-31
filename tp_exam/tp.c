@@ -56,14 +56,6 @@ tss_t      TSS;
 #define PGD_ADDR_PROCESS2 0x102000
 #define VIRTUAL_KERNEL_STACK 0xC0000000
 
-#define PT0_ADDR_KERNEL 0x103000
-#define PT1_ADDR_KERNEL 0x104000
-#define PT0_ADDR_PROCESS1 0x105000
-#define PT1_ADDR_PROCESS1 0x106000
-#define PT0_ADDR_PROCESS2 0x107000
-#define PT1_ADDR_PROCESS2 0x108000
-
-
 void init_gdt() {
    gdt_reg_t gdtr;
 
@@ -97,7 +89,7 @@ void init_paging(){
    memset((void*)pgd_process2, 0, PAGE_SIZE);
 
    // Map Kernel space 0x0-0x2fffff
-   map_addresses(pgd_kernel, 0x100000, 0x100000, 0x200000, PG_KRN | PG_RW);
+   map_addresses(pgd_kernel, 0x0, 0x0, 0x300000, PG_KRN | PG_RW);
 
    // Map Process 1 space 0x300000-0x3fffff
    map_addresses(pgd_process1, 0x300000, 0x300000, 0x100000, PG_USR | PG_RW);
@@ -150,9 +142,9 @@ void init_paging(){
    uint32_t cr0 = get_cr0();
    set_cr0(cr0|CR0_PG);
 
-   //analyze_page_mapping(&pgd_kernel[0]);
-	//analyze_page_mapping(&pgd_process1[0]);
-	//analyze_page_mapping(&pgd_process2[0]);
+   analyze_page_mapping(&pgd_kernel[0]);
+	analyze_page_mapping(&pgd_process1[0]);
+	analyze_page_mapping(&pgd_process2[0]);
 }
 void process1(){
 	while(1){};

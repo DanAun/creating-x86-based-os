@@ -6,7 +6,7 @@
 #include "types.h"
 #include <debug.h>
 
-#define PGD_ADDR 0x600000
+#define PGD_ADDR 0x100000
 #define PTB_ADDR_BASE 0x103000
 #define PTB_COUNT 3
 #define PTB_SIZE 0x1000
