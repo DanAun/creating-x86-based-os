@@ -1,6 +1,6 @@
 #include "pagination.h"
 
-void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t size) {
+void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t size, uint32_t flags) {
     debug("Mapping addresses: v_start=0x%x, p_start=0x%x, size=0x%x\n", v_start, p_start, size);
 
     // Step 1: Check if addresses and size are aligned
@@ -26,7 +26,7 @@ void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t si
         if (pgd[pgd_idx].raw == 0) {
             uint32_t pte_base = PTB_ADDR_BASE + (pgd_idx * PTB_SIZE);
             debug("Allocating new PTE table at address: 0x%x\n", pte_base);
-            pg_set_entry(&pgd[pgd_idx], PG_KRN | PG_RW, pte_base >> 12);
+            pg_set_entry(&pgd[pgd_idx], flags, pte_base >> 12);
         } else {
             debug("PGD entry already allocated.\n");
         }
@@ -50,7 +50,7 @@ void map_addresses(pde32_t *pgd ,uint32_t v_start, uint32_t p_start, uint32_t si
 
         for (uint32_t pte_idx = pte_start_idx; pte_idx <= pte_end_idx; pte_idx++) {
             debug("Mapping PTE index: %u, @ addr : 0x%08x, to physical address: 0x%x\n", pte_idx,(uint32_t)&pte[pte_idx], p_start);
-            pg_set_entry(&pte[pte_idx], PG_KRN | PG_RW, p_start >> 12);
+            pg_set_entry(&pte[pte_idx], flags, p_start >> 12);
             p_start += PAGE_SIZE;
         }
 

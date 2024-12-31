@@ -7,20 +7,22 @@ All tasks see this same mapping in their address space
 
 Shared Memory:
 
-Physical: 0x00400000 - 0x00401000 (4KB)
-Task 1 Virtual: 0x40000000 - 0x40001000
-Task 2 Virtual: 0x50000000 - 0x50001000
+Physical: 0x00500000 - 0x00500fff (4KB)
+Task 1 Virtual: 0x500000 - 0x500fff
+Task 2 Virtual: 0x600000 - 0x600fff
 Different virtual addresses prevent mistakes in pointer handling
 
 
 Task Stacks:
 
 Each task has two 4KB stacks (user and kernel)
-User stacks at virtual 0x7FFFF000 (standard userland stack location)
-Kernel stacks at virtual 0x80000000 (start of kernel space)
+User stacks identity mapped:
+    Process1: 0x3fffff (grows down)
+    Process2: 0x4fffff (grows down)
+Kernel stacks at virtual 0xC0000000
 Physical locations are consecutive but separated to avoid overlap
-0x402000 - 0x404000
-0x403000 - 0x405000
+0x200000 - 0x200fff
+0x201000 - 0x201fff
 
 
 Task Code:
@@ -29,7 +31,12 @@ Virtual: 0x08048000 (standard ELF loading address)
 Physical: Separate 4KB pages for each task
 This allows for different code in each task while using the same virtual address
 
-PDT and PGT memory range :  [0x100000 - 0x1fffff]
-Kernel memory range:        [0x200000 - 0x2fffff]
+Physical Memory layout summary:
+
+PGD and PTB memory range :  [0x100000 - 0x1fffff]
+Kernel memory range :       [0x200000 - 0x2fffff]
+    Process1 kernel stack : [0x200000 - 0x200fff]
+    Process2 kernel stack : [0x201000 - 0x201fff]
 Process1 memory range :     [0x300000 - 0x3fffff]
 Process2 memory range :     [0x400000 - 0x4fffff]
+Shared memory range:        [0x500000 - 0x500fff]

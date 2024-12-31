@@ -51,9 +51,10 @@ tss_t      TSS;
 #define c3_dsc(_d) gdt_flat_dsc(_d,3,SEG_DESC_CODE_XR)
 #define d3_dsc(_d) gdt_flat_dsc(_d,3,SEG_DESC_DATA_RW)
 
-#define PDT_ADDR_KERNEL 0x100000
-#define PDT_ADDR_PROCESS1 0x101000
-#define PDT_ADDR_PROCESS2 0x102000
+#define PGD_ADDR_KERNEL 0x100000
+#define PGD_ADDR_PROCESS1 0x101000
+#define PGD_ADDR_PROCESS2 0x102000
+#define VIRTUAL_KERNEL_STACK 0xC0000000
 
 #define PT0_ADDR_KERNEL 0x103000
 #define PT1_ADDR_KERNEL 0x104000
@@ -87,16 +88,31 @@ void init_gdt() {
 }
 
 void init_paging(){
-   pde32_t *pdt_kernel = (pde32_t*) PDT_ADDR_KERNEL;
-   pde32_t *pdt_process1 = (pde32_t*) PDT_ADDR_PROCESS1;
-   pde32_t *pdt_process2 = (pde32_t*) PDT_ADDR_PROCESS2;
+   pde32_t *pgd_kernel = (pde32_t*) PGD_ADDR_KERNEL;
+   pde32_t *pgd_process1 = (pde32_t*) PGD_ADDR_PROCESS1;
+   pde32_t *pgd_process2 = (pde32_t*) PGD_ADDR_PROCESS2;
 
-   memset((void*)pdt_kernel, 0, PAGE_SIZE);
-   memset((void*)pdt_process1, 0, PAGE_SIZE);
-   memset((void*)pdt_process2, 0, PAGE_SIZE);
-   map_addresses(pdt_kernel, 0x0, 0x0, 0x700000);
-   map_addresses(pdt_process1, 0x0, 0x0, 0x700000);
-   map_addresses(pdt_process2, 0x0, 0x0, 0x700000);
+   memset((void*)pgd_kernel, 0, PAGE_SIZE);
+   memset((void*)pgd_process1, 0, PAGE_SIZE);
+   memset((void*)pgd_process2, 0, PAGE_SIZE);
+
+   // Map Kernel space 0x0-0x2fffff
+   map_addresses(pgd_kernel, 0x100000, 0x100000, 0x200000, PG_KRN | PG_RW);
+
+   // Map Process 1 space 0x300000-0x3fffff
+   map_addresses(pgd_process1, 0x300000, 0x300000, 0x100000, PG_USR | PG_RW);
+
+   // Map Process 2 space 0x400000-0x4fffff
+   map_addresses(pgd_process2, 0x400000, 0x400000, 0x100000, PG_USR | PG_RW);
+
+   // Map shared memory 0x500000 - 0x501000
+   map_addresses(pgd_process1, 0x500000, 0x500000, 0x1000, PG_USR | PG_RW);
+   map_addresses(pgd_process2, 0x600000, 0x500000, 0x1000, PG_USR);
+
+   // Map Process kernel stacks
+   map_addresses(pgd_process1, VIRTUAL_KERNEL_STACK, 0x200000, 0x1000, PG_KRN | PG_RW);
+   map_addresses(pgd_process2, VIRTUAL_KERNEL_STACK, 0x201000, 0x1000, PG_KRN | PG_RW);
+
 /*
    pte32_t *pt0_kernel = (pte32_t*) PT0_ADDR_KERNEL;
    pte32_t *pt1_kernel = (pte32_t*) PT1_ADDR_KERNEL;
@@ -120,23 +136,23 @@ void init_paging(){
    }
 
    // Set up page tables into the corresponding page directories
-   memset((void*)pdt_kernel, 0, PAGE_SIZE);
-   memset((void*)pdt_process1, 0, PAGE_SIZE);
-   memset((void*)pdt_process2, 0, PAGE_SIZE);
-   pg_set_entry(&pdt_kernel[0], PG_KRN|PG_RW, page_get_nr(pt0_kernel));
-   pg_set_entry(&pdt_kernel[1], PG_KRN|PG_RW, page_get_nr(pt1_kernel));
-   pg_set_entry(&pdt_process1[0], PG_USR|PG_RW, page_get_nr(pt0_process1));
-   pg_set_entry(&pdt_process1[1], PG_USR|PG_RW, page_get_nr(pt1_process1));
-   pg_set_entry(&pdt_process2[0], PG_USR|PG_RW, page_get_nr(pt0_process2));
-   pg_set_entry(&pdt_process2[1], PG_USR|PG_RW, page_get_nr(pt1_process2));
+   memset((void*)pgd_kernel, 0, PAGE_SIZE);
+   memset((void*)pgd_process1, 0, PAGE_SIZE);
+   memset((void*)pgd_process2, 0, PAGE_SIZE);
+   pg_set_entry(&pgd_kernel[0], PG_KRN|PG_RW, page_get_nr(pt0_kernel));
+   pg_set_entry(&pgd_kernel[1], PG_KRN|PG_RW, page_get_nr(pt1_kernel));
+   pg_set_entry(&pgd_process1[0], PG_USR|PG_RW, page_get_nr(pt0_process1));
+   pg_set_entry(&pgd_process1[1], PG_USR|PG_RW, page_get_nr(pt1_process1));
+   pg_set_entry(&pgd_process2[0], PG_USR|PG_RW, page_get_nr(pt0_process2));
+   pg_set_entry(&pgd_process2[1], PG_USR|PG_RW, page_get_nr(pt1_process2));
 */
-   set_cr3((uint32_t)pdt_kernel);
+   set_cr3((uint32_t)pgd_kernel);
    uint32_t cr0 = get_cr0();
    set_cr0(cr0|CR0_PG);
 
-   //analyze_page_mapping(&pdt_kernel[0]);
-	analyze_page_mapping(&pdt_process1[0]);
-	analyze_page_mapping(&pdt_process2[0]);
+   //analyze_page_mapping(&pgd_kernel[0]);
+	//analyze_page_mapping(&pgd_process1[0]);
+	//analyze_page_mapping(&pgd_process2[0]);
 }
 void process1(){
 	while(1){};
