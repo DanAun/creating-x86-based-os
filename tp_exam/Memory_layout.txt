@@ -29,3 +29,7 @@ Virtual: 0x08048000 (standard ELF loading address)
 Physical: Separate 4KB pages for each task
 This allows for different code in each task while using the same virtual address
 
+PDT and PGT memory range :  [0x100000 - 0x1fffff]
+Kernel memory range:        [0x200000 - 0x2fffff]
+Process1 memory range :     [0x300000 - 0x3fffff]
+Process2 memory range :     [0x400000 - 0x4fffff]

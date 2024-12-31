@@ -1,4 +1,4 @@
-#ifdef PAGINATION_
+#ifndef PAGINATION_
 #define PAGINATION_ 
 
 #include "cr.h"

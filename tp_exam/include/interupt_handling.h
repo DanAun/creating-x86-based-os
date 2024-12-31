@@ -1,4 +1,4 @@
-#ifndef INTERUPU_HANDLING
+#ifndef INTERUPT_HANDLING
 #define INTERUPT_HANDLING
 
 #include <debug.h>

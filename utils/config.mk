@@ -17,7 +17,8 @@ CFLG_FP    := -mno-mmx -mno-sse -mno-sse2 -mno-sse3 -mno-ssse3 -mno-sse4.1 \
               -mno-abm -mno-bmi -mno-bmi2 -mno-lzcnt -mno-tbm
 
 CFLG_32    := -m32 -g -fno-pic
-CFLG_WRN   := -Wall -W -Werror
+#CFLG_WRN   := -Wall -W -Werror
+CFLG_WRN   := -Wall
 CFLG_KRN   := -pipe -nostdlib -nostdinc -ffreestanding -fms-extensions -fno-stack-protector
 CFLG_REL   := -DRELEASE=\"secos-$(RELEASE)\"
 CFLAGS     := $(CFLG_WRN) $(CFLG_FP) $(CFLG_KRN) $(CFLG_32) $(CFLG_REL) 

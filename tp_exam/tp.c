@@ -3,6 +3,7 @@
 #include <pagemem.h>
 #include <cr.h>
 
+#include "pagination.h"
 #include "utils.h"
 
 seg_desc_t GDT[6];
@@ -82,6 +83,38 @@ void init_gdt() {
    set_gs(d0_sel);
 }
 
+void init_paging(){
+   pde32_t *pdt_kernel = (pde32_t*) PDT_ADDR_KERNEL;
+   memset((void*)pdt_kernel, 0, PAGE_SIZE);
+   map_addresses(pdt_kernel, 0x0, 0x0, 0x1000 * 7);
+   /*pde32_t *pdt_process1 = (pde32_t*) PDT_ADDR_PROCESS1;
+   pde32_t *pdt_process2 = (pde32_t*) PDT_ADDR_PROCESS2;
+
+   pte32_t *pt_kernel = (pte32_t*) PT_ADDR_KERNEL;
+   pte32_t *pt_process1 = (pte32_t*) PT_ADDR_PROCESS1;
+   pte32_t *pt_process2 = (pte32_t*) PT_ADDR_PROCESS2;
+
+   for (uint32_t i = 0; i < PTE32_PER_PT; i++) {
+      pg_set_entry(&pt_kernel[i], PG_KRN | PG_RW, i);
+      pg_set_entry(&pt_process1[i], PG_USR | PG_RW, i);
+      pg_set_entry(&pt_process2[i], PG_USR | PG_RW, i);
+   }
+
+   memset((void*)pdt_kernel, 0, PAGE_SIZE);
+   memset((void*)pdt_process1, 0, PAGE_SIZE);
+   memset((void*)pdt_process2, 0, PAGE_SIZE);
+   pg_set_entry(&pdt_kernel[0], PG_KRN|PG_RW, page_get_nr(pt_kernel));
+   pg_set_entry(&pdt_process1[0], PG_USR|PG_RW, page_get_nr(pt_process1));
+   pg_set_entry(&pdt_process2[0], PG_USR|PG_RW, page_get_nr(pt_process2));
+   */
+   set_cr3((uint32_t)pdt_kernel);
+   uint32_t cr0 = get_cr0();
+   set_cr0(cr0|CR0_PG);
+
+   //analyze_page_mapping(&pdt_kernel[0]);
+	//analyze_page_mapping(&pdt_process1[0]);
+	//analyze_page_mapping(&pdt_process2[0]);
+}
 void process1(){
 	while(1){};
 }
@@ -92,6 +125,7 @@ void process2(){
 
 void tp() {
 	//init_gdt();
+   init_paging();
 
 	//Set up TSS
 
@@ -106,42 +140,6 @@ void tp() {
 	// //Set up IDT
  //  debug("=======Setting up IDT=======\n");
 
-	//Set up paging
-
-	// Page Directory Tables (PDTs) for each process
-	pde32_t *pdt_kernel = (pde32_t*) PDT_ADDR_KERNEL;
-	set_cr3((uint32_t)pdt_kernel);
-	pde32_t *pdt_process1 = (pde32_t*) PDT_ADDR_PROCESS1;
-	pde32_t *pdt_process2 = (pde32_t*) PDT_ADDR_PROCESS2;
-	
-	// Page Tables (PTs) for each process
-	pte32_t *pt_kernel = (pte32_t*) PT_ADDR_KERNEL;
-	pte32_t *pt_process1 = (pte32_t*) PT_ADDR_PROCESS1;
-	pte32_t *pt_process2 = (pte32_t*) PT_ADDR_PROCESS2;
-
-	// Set up page tables
-	for (uint32_t i = 0; i < PTE32_PER_PT; i++) {
-		pg_set_entry(&pt_kernel[i], PG_KRN | PG_RW, i);
-		pg_set_entry(&pt_process1[i], PG_USR | PG_RW, i);
-		pg_set_entry(&pt_process2[i], PG_USR | PG_RW, i);
-	}
-
-	// Set up page directory tables
-	memset((void*)pdt_kernel, 0, PAGE_SIZE);
-	memset((void*)pdt_process1, 0, PAGE_SIZE);
-	memset((void*)pdt_process2, 0, PAGE_SIZE);
-	pg_set_entry(&pdt_kernel[0], PG_KRN|PG_RW, page_get_nr(pt_kernel));
-	pg_set_entry(&pdt_process1[0], PG_USR|PG_RW, page_get_nr(pt_process1));
-	pg_set_entry(&pdt_process2[0], PG_USR|PG_RW, page_get_nr(pt_process2));
-
-	//Enable paging
-	uint32_t cr0 = get_cr0();
-	set_cr0(cr0|CR0_PG);
-
-	analyze_page_mapping(&pdt_kernel[0]);
-	analyze_page_mapping(&pdt_process1[0]);
-	analyze_page_mapping(&pdt_process2[0]);
-   
 /* I need sleep here a super pagination function with example usages, have fun :
       *   map_addresses(pgd, 0x0, 0x0,
                 0x1000 *
@@ -160,28 +158,5 @@ void tp() {
       0x1000); // Map 4 pages starting at virtual 0x600000 to physical 0x600000
     //
 */
-
-
-
-	debug("pt_kernel[1] = %x\n", pt_kernel[1].raw);
-	debug("pt_process1[1] = %x\n", pt_process1[1].raw);
-	debug("pt_process2[1] = %x\n", pt_process2[1].raw);
-}
-void process1(){
-	while(1){};
-}
-
-void process2(){
-	while(1){};
-}
-
-void tp() {
-	init_gdt();
-
-	//Set up TSS
-
-	//Set up IDT
-
-	init_paging();
 
 }
