@@ -3,6 +3,12 @@
 #include <pagemem.h>
 #include <cr.h>
 
+#include "utils.h"
+
+seg_desc_t GDT[6];
+tss_t      TSS;
+
+
 #define c0_idx  1
 #define d0_idx  2
 #define c3_idx  3
@@ -52,8 +58,6 @@
 #define PT_ADDR_PROCESS1 0x104000
 #define PT_ADDR_PROCESS2 0x105000
 
-seg_desc_t GDT[6];
-tss_t      TSS;
 
 void init_gdt() {
    gdt_reg_t gdtr;
@@ -91,7 +95,16 @@ void tp() {
 
 	//Set up TSS
 
-	//Set up IDT
+ //  debug("=======Setting up TSS=======\n");
+ //  debug("TSS location : %p\n", &TSS);
+ //  TSS.s0.ss = make_seg_sel(2, 0, 0);
+ //  TSS.s0.esp = get_esp();
+ //  short tr = make_seg_sel(6, 0, 0);
+ //  set_tr(tr);
+ //  TSS.ss = make_seg_sel(5, 0, 3); // Ring 3 stack segment
+ //   //
+	// //Set up IDT
+ //  debug("=======Setting up IDT=======\n");
 
 	//Set up paging
 
@@ -124,6 +137,31 @@ void tp() {
 	//Enable paging
 	uint32_t cr0 = get_cr0();
 	set_cr0(cr0|CR0_PG);
+
+	analyze_page_mapping(&pdt_kernel[0]);
+	analyze_page_mapping(&pdt_process1[0]);
+	analyze_page_mapping(&pdt_process2[0]);
+   
+/* I need sleep here a super pagination function with example usages, have fun :
+      *   map_addresses(pgd, 0x0, 0x0,
+                0x1000 *
+                    4); // Map 4 pages starting at virtual 0x0 to physical 0x0
+  map_addresses(pgd,
+      0x300000, 0x300000,
+      0x1000 *
+          7); // Map 7 pages starting at virtual 0x300000 to physical 0x300000
+  map_addresses(pgd,
+      0x600000, 0x600000,
+      0x1000 *
+          4); // Map 4 pages starting at virtual 0x600000 to physical 0x600000
+    //
+  map_addresses(pgd,
+      0xc0000000, 0x600000,
+      0x1000); // Map 4 pages starting at virtual 0x600000 to physical 0x600000
+    //
+*/
+
+
 
 	debug("pt_kernel[1] = %x\n", pt_kernel[1].raw);
 	debug("pt_process1[1] = %x\n", pt_process1[1].raw);
